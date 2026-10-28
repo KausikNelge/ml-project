@@ -320,7 +320,7 @@ def main():
 
         selected_tab = st.radio(
             "Navigation",
-            ["📊 Dashboard", "🚗 Fleet Inventory", "⚡ AI Price Estimator", "📈 Analytics & Trends", "🧠 Model Specs"],
+            ["📊 Dashboard", "🚗 Fleet Inventory", "⚡ AI Price Estimator", "📈 Analytics & Trends"],
             label_visibility="collapsed"
         )
 
@@ -533,20 +533,6 @@ def main():
             st.image(str(eda_img), caption="Automotive Feature Correlation & Distribution Analysis", use_container_width=True)
         else:
             st.info("Run `python generate_eda.py` to generate the dashboard plot.")
-
-    # TAB 5: MODEL SPECS
-    elif selected_tab == "🧠 Model Specs":
-        st.markdown("## 🧠 Machine Learning Architecture & Tuning")
-        st.markdown("""
-        - **Algorithm**: Random Forest Regressor
-        - **Target Variable**: Natural Log (`log1p(selling_price)`) with exponential back-transformation
-        - **GridSearchCV Results**:
-          - `n_estimators`: 150
-          - `min_samples_split`: 5
-          - `max_depth`: None (Fully grown trees with minimum leaf split regularization)
-        - **Cross-Validation Score**: $R^2 = 0.9338$
-        - **Final Test Performance**: $R^2 = 0.9723$ | MAE = $₹66,336.35$
-        """)
 
 
 if __name__ == '__main__':
