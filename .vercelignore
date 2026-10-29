@@ -1,0 +1,11 @@
+# Python / ML files not needed for static site
+venv/
+__pycache__/
+*.pkl
+*.csv
+*.png
+*.py
+src/
+tests/
+.pytest_cache/
+

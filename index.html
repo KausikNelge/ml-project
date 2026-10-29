@@ -4,453 +4,545 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixora - Fleet Management & Valuation Dashboard</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Fixora — Enterprise Fleet & Valuation Dashboard</title>
+    <meta name="description" content="Enterprise automotive fleet valuation, inventory management, and market intelligence platform. Instant algorithmic appraisal across 8,100+ transactions.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js CDN for reactivity -->
+    
+    <!-- Chart.js CDN for interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Newsreader:ital,wght@1,400;1,500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Newsreader:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                        'slide-up': 'slideUp 0.4s ease-out forwards',
+                        'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
+                        'float': 'float 5s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(15px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        pulseGlow: { '0%, 100%': { opacity: '0.15' }, '50%': { opacity: '0.3' } },
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        [x-cloak] { display: none !important; }
+        body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #020617; }
+        .font-serif-italic { font-family: 'Newsreader', serif; }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(30, 41, 59, 0.7);
         }
 
-        .font-serif-italic {
-            font-family: 'Newsreader', serif;
+        .glass-panel-hover {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-panel-hover:hover {
+            transform: translateY(-2px);
+            border-color: rgba(168, 85, 247, 0.35);
+            box-shadow: 0 12px 30px -10px rgba(147, 51, 234, 0.15);
         }
 
-        /* Custom scrollbar for dark aesthetic */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        .gradient-border-box {
+            position: relative;
+            background: rgba(15, 23, 42, 0.85);
+            border-radius: 1rem;
+        }
+        .gradient-border-box::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(147,51,234,0.6), rgba(99,102,241,0.4), rgba(52,211,153,0.3));
+            z-index: -1;
+            padding: 1px;
         }
 
-        ::-webkit-scrollbar-track {
-            background: #020617;
+        input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
+        input[type="range"]::-webkit-slider-track { height: 6px; border-radius: 9999px; background: linear-gradient(90deg, #1e1b4b, #312e81); }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            box-shadow: 0 0 10px rgba(147,51,234,0.6);
+            margin-top: -6px; transition: transform 0.15s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .nav-active {
+            background: rgba(147, 51, 234, 0.12) !important;
+            color: #d8b4fe !important;
+            border-color: rgba(168, 85, 247, 0.3) !important;
+            position: relative;
+        }
+        .nav-active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 25%;
+            height: 50%;
+            width: 3px;
+            background: #a855f7;
+            border-radius: 0 4px 4px 0;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #1e293b;
-            border-radius: 9999px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #334155;
-        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
     </style>
 </head>
 
-<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-purple-500 selection:text-white"
-    x-data="fleetApp()">
+<body class="bg-slate-950 text-slate-100 antialiased selection:bg-purple-500/40 selection:text-white"
+    x-data="fleetApp()" x-cloak>
 
-    <!-- Atmospheric Ambient Glows -->
-    <div
-        class="fixed top-12 left-1/3 -translate-x-1/2 w-[600px] h-[300px] bg-purple-600/15 blur-[130px] rounded-full pointer-events-none z-0">
-    </div>
-    <div
-        class="fixed bottom-10 right-1/4 w-[450px] h-[250px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none z-0">
-    </div>
+    <!-- Ambient Glowing Orbs -->
+    <div class="fixed top-0 left-1/4 w-[650px] h-[350px] bg-purple-600/12 blur-[150px] rounded-full pointer-events-none z-0 animate-pulse-glow"></div>
+    <div class="fixed bottom-10 right-1/4 w-[550px] h-[300px] bg-indigo-600/10 blur-[140px] rounded-full pointer-events-none z-0 animate-pulse-glow" style="animation-delay: 2s;"></div>
+    <div class="fixed top-1/2 left-2/3 -translate-y-1/2 w-[350px] h-[350px] bg-emerald-600/5 blur-[130px] rounded-full pointer-events-none z-0"></div>
 
     <div class="flex h-screen overflow-hidden relative z-10">
 
-        <!-- Sidebar Navigation -->
-        <aside
-            class="w-64 bg-slate-900/90 border-r border-slate-800 flex flex-col justify-between hidden md:flex backdrop-blur-xl">
+        <!-- ═══ SIDEBAR NAVIGATION ═══ -->
+        <aside class="w-[260px] bg-slate-900/90 border-r border-slate-800/70 hidden md:flex flex-col justify-between backdrop-blur-2xl shrink-0 z-20">
             <div>
                 <!-- Brand Header -->
-                <div class="h-20 flex items-center px-6 gap-3 border-b border-slate-800">
-                    <div
-                        class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white shadow-lg shadow-purple-500/30">
-                        F</div>
+                <div class="h-[72px] flex items-center px-6 gap-3.5 border-b border-slate-800/60">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-base shadow-lg shadow-purple-500/30">
+                        F
+                    </div>
                     <div>
                         <span class="font-bold text-lg tracking-tight text-white block leading-none">Fixora</span>
-                        <span class="text-[10px] text-purple-400 font-semibold tracking-wider uppercase">Fleet
-                            Intelligence</span>
+                        <span class="text-[10px] text-purple-400 font-semibold tracking-wider uppercase">Fleet Intelligence</span>
                     </div>
                 </div>
 
-                <!-- Nav Links -->
-                <nav class="p-4 space-y-1.5 text-sm">
-                    <button @click="currentTab = 'dashboard'"
-                        :class="currentTab === 'dashboard' ? 'bg-purple-600/15 text-purple-400 border-purple-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
-                        class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-transparent font-medium transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                            </path>
-                        </svg>
-                        Executive Overview
-                    </button>
-                    <button @click="currentTab = 'fleet'"
-                        :class="currentTab === 'fleet' ? 'bg-purple-600/15 text-purple-400 border-purple-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
-                        class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-transparent font-medium transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0">
-                            </path>
-                        </svg>
-                        Fleet Inventory
-                    </button>
-                    <button @click="currentTab = 'valuation'"
-                        :class="currentTab === 'valuation' ? 'bg-purple-600/15 text-purple-400 border-purple-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
-                        class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-transparent font-medium transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                            </path>
-                        </svg>
-                        Price Appraisal Studio
-                    </button>
-                    <button @click="currentTab = 'analytics'"
-                        :class="currentTab === 'analytics' ? 'bg-purple-600/15 text-purple-400 border-purple-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
-                        class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-transparent font-medium transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                            </path>
-                        </svg>
-                        Market Intelligence
-                    </button>
+                <!-- Navigation Tabs -->
+                <nav class="p-3.5 space-y-1">
+                    <template x-for="item in navItems" :key="item.id">
+                        <button @click="switchTab(item.id)"
+                            :class="currentTab === item.id ? 'nav-active' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border-transparent'"
+                            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150">
+                            <span x-text="item.icon" class="text-base shrink-0"></span>
+                            <span x-text="item.label" class="truncate"></span>
+                            <span x-show="item.badge" x-text="item.badge"
+                                class="ml-auto text-[10px] font-bold bg-purple-600/25 text-purple-300 px-2 py-0.5 rounded-full"></span>
+                        </button>
+                    </template>
                 </nav>
+
+                <!-- Model Live Telemetry Box -->
+                <div class="mx-3.5 mt-3 p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/60">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Valuation Core</span>
+                        <span class="flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> v2.4 Live
+                        </span>
+                    </div>
+                    <div class="space-y-1.5 text-xs">
+                        <div class="flex justify-between text-slate-400">
+                            <span>Dataset</span>
+                            <span class="text-slate-200 font-semibold">8,128 records</span>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Model Precision</span>
+                            <span class="text-purple-300 font-semibold">R² = 0.9534</span>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Avg Spread</span>
+                            <span class="text-emerald-400 font-semibold">₹82.5k / car</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Sidebar Footer -->
-            <div class="p-4 border-t border-slate-800">
-                <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 flex items-center gap-3">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
-                        FA</div>
+            <!-- Sidebar User / Profile Footer -->
+            <div class="p-3.5 border-t border-slate-800/60">
+                <div class="p-2.5 rounded-xl bg-slate-950/50 border border-slate-800/50 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
+                        FL
+                    </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-xs font-semibold text-white truncate">Enterprise Operations</p>
-                        <p class="text-[10px] text-emerald-400 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Valuation Engine Live
-                        </p>
+                        <p class="text-xs font-semibold text-white truncate">Fleet Operations</p>
+                        <p class="text-[10px] text-slate-400 truncate">Dealership Enterprise</p>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content Panel -->
-        <main class="flex-1 flex flex-col overflow-y-auto">
+        <!-- ═══ MAIN APPLICATION WORKSPACE ═══ -->
+        <main class="flex-1 flex flex-col overflow-y-auto pb-20 md:pb-6">
 
             <!-- Top Header Bar -->
-            <header
-                class="h-20 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30">
-                <div class="flex items-center gap-4">
-                    <!-- Mobile Hamburger -->
-                    <button class="md:hidden text-slate-400 hover:text-white" @click="currentTab = 'dashboard'">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
-
-                    <h1 class="text-xl font-bold text-white tracking-tight capitalize"
-                        x-text="currentTab === 'valuation' ? 'Price Appraisal Studio' : (currentTab === 'dashboard' ? 'Executive Overview' : currentTab.replace('-', ' '))">
-                    </h1>
-                    <span
-                        class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/50 text-emerald-300 border border-emerald-800/40">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                        High Liquidity Index
-                    </span>
+            <header class="h-16 md:h-[72px] border-b border-slate-800/70 bg-slate-950/80 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between sticky top-0 z-30">
+                <div class="flex items-center gap-3">
+                    <!-- Mobile Logo -->
+                    <div class="md:hidden w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-sm">
+                        F
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-base md:text-xl font-bold text-white tracking-tight"
+                                x-text="navItems.find(n => n.id === currentTab)?.label || 'Dashboard'"></h1>
+                            <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Real-Time Feed
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 hidden sm:block">Commercial fleet pricing & liquidation benchmark platform</p>
+                    </div>
                 </div>
 
-                <div class="flex items-center gap-4">
-                    <a href="http://localhost:8501" target="_blank"
-                        class="px-4 py-2 rounded-full bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 hover:text-white text-xs font-medium transition-all flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        Streamlit Portal Live (:8501)
-                    </a>
-                    <button @click="currentTab = 'valuation'"
-                        class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-semibold text-white shadow-md shadow-purple-600/30 transition-all">
-                        + New Appraisal
+                <div class="flex items-center gap-2.5">
+                    <!-- Quick Export CSV -->
+                    <button @click="exportFleetCSV()"
+                        class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300 hover:text-white transition-all">
+                        <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Export CSV
+                    </button>
+
+                    <!-- New Valuation Button -->
+                    <button @click="switchTab('valuation')"
+                        class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-bold text-white shadow-lg shadow-purple-600/30 transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-1.5">
+                        <span>⚡</span>
+                        <span>New Appraisal</span>
                     </button>
                 </div>
             </header>
 
-            <!-- Tab 1: Dashboard View -->
-            <div x-show="currentTab === 'dashboard'" class="p-6 md:p-8 space-y-8">
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- ═══ TAB 1: FLEET DASHBOARD (EXECUTIVE VIEW) ═══ -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div x-show="currentTab === 'dashboard'"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-3"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="p-4 md:p-8 space-y-6">
 
-                <!-- Hero Banner inside Dashboard -->
-                <div
-                    class="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 p-6 md:p-8 backdrop-blur-xl">
-                    <div class="relative z-10 max-w-2xl">
-                        <span
-                            class="text-xs font-semibold uppercase tracking-wider text-purple-400 mb-2 block">Enterprise
-                            Automotive Valuation & Fleet Intelligence</span>
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">
-                            Elevate Your <span class="font-serif-italic font-normal text-purple-400 italic">Fleet</span>
-                            Management with Fixora
-                        </h2>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                            Optimize trade-in acquisition pricing, accelerate inventory turnover velocity, and protect
-                            dealership gross margins with instant market-calibrated intelligence.
-                        </p>
-                        <div class="flex items-center gap-3">
-                            <button @click="currentTab = 'valuation'"
-                                class="px-5 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 font-semibold text-white text-xs shadow-lg shadow-purple-600/30 hover:scale-[1.02] transition-all">
-                                Appraise Single Vehicle
-                            </button>
-                            <button @click="currentTab = 'fleet'"
-                                class="px-5 py-2.5 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs font-medium transition-all">
-                                Browse Fleet Inventory
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Business KPI Metric Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 backdrop-blur-md">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Managed Fleet
-                            Assets</p>
-                        <p class="text-3xl font-extrabold text-white">8,128</p>
-                        <span class="text-[11px] text-emerald-400 flex items-center gap-1 mt-1">
-                            ↑ Across 32 Automotive Brands
-                        </span>
-                    </div>
-                    <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 backdrop-blur-md">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Portfolio
-                            Valuation</p>
-                        <p class="text-3xl font-extrabold text-purple-400">₹52.8 Cr</p>
-                        <span class="text-[11px] text-purple-300 mt-1 block">
-                            Total Asset Market Capitalization
-                        </span>
-                    </div>
-                    <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 backdrop-blur-md">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Average Unit Price
-                        </p>
-                        <p class="text-3xl font-extrabold text-emerald-400">₹6.49 Lakh</p>
-                        <span class="text-[11px] text-slate-400 mt-1 block">
-                            Balanced Commercial & Retail Mix
-                        </span>
-                    </div>
-                    <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 backdrop-blur-md">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Gross Margin
-                            Potential</p>
-                        <p class="text-3xl font-extrabold text-indigo-400">+12.5%</p>
-                        <span class="text-[11px] text-slate-400 mt-1 block">
-                            ₹75k – ₹95k Per Unit Spread
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Dashboard 2-Column Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                    <!-- Quick Valuation Mini-App (2 cols) -->
-                    <div class="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl">
-                        <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
-                            <div>
-                                <h3 class="font-bold text-base text-white">Commercial Resale Appraisal Simulator</h3>
-                                <p class="text-xs text-slate-400">Adjust vehicle attributes below to generate instant
-                                    market-calibrated appraisal benchmarks.</p>
+                <!-- Dashboard Welcome Banner -->
+                <div class="relative overflow-hidden rounded-2xl border border-slate-800/80 glass-panel p-6 md:p-8">
+                    <div class="absolute -right-10 -top-10 w-80 h-80 bg-purple-600/10 blur-[90px] rounded-full pointer-events-none"></div>
+                    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div class="max-w-2xl">
+                            <div class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-purple-400 mb-2.5 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">
+                                <span>📊</span> Fixora Commercial Fleet Intelligence
                             </div>
-                            <span
-                                class="text-xs font-semibold text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-800/50">Market
-                                Benchmark</span>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                            <div>
-                                <label
-                                    class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Brand</label>
-                                <select x-model="estimator.brand" @change="calculateValuation()"
-                                    class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500">
-                                    <option>Maruti</option>
-                                    <option>Hyundai</option>
-                                    <option>Honda</option>
-                                    <option>Toyota</option>
-                                    <option>Mahindra</option>
-                                    <option>Tata</option>
-                                    <option>Renault</option>
-                                    <option>BMW</option>
-                                    <option>Mercedes-Benz</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Year</label>
-                                <select x-model="estimator.year" @change="calculateValuation()"
-                                    class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500">
-                                    <option value="2022">2022 (4 yrs old)</option>
-                                    <option value="2020">2020 (6 yrs old)</option>
-                                    <option value="2018">2018 (8 yrs old)</option>
-                                    <option value="2016">2016 (10 yrs old)</option>
-                                    <option value="2014">2014 (12 yrs old)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Odometer</label>
-                                <input type="number" x-model="estimator.km" @input="calculateValuation()"
-                                    class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
-                                    step="5000">
-                            </div>
-                        </div>
-
-                        <!-- Result Card -->
-                        <div
-                            class="mt-4 p-5 rounded-xl bg-gradient-to-r from-purple-950/40 via-slate-950 to-indigo-950/40 border border-purple-500/30">
-                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                <div>
-                                    <p class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Estimated
-                                        Fair Market Value (FMV)</p>
-                                    <p class="text-3xl font-extrabold text-white" x-text="valuationResult.formatted">
-                                    </p>
-                                    <p class="text-xs text-slate-400">Target Buy-in: <span
-                                            class="text-emerald-400 font-semibold"
-                                            x-text="valuationResult.buyPrice"></span> · Target Retail: <span
-                                            class="text-purple-300 font-semibold"
-                                            x-text="valuationResult.retailPrice"></span></p>
-                                </div>
-                                <button @click="currentTab = 'valuation'"
-                                    class="px-5 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 font-semibold text-xs text-white shadow-lg shadow-purple-600/30 hover:scale-[1.02] transition-all whitespace-nowrap">
-                                    Open Full Studio →
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Depreciation Bar Card (1 col) -->
-                    <div
-                        class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-bold text-base text-white mb-1">Asset Value Retention</h3>
-                            <p class="text-xs text-slate-400 mb-4">Historical trade-in value by vehicle lifecycle tier.
+                            <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">
+                                Fleet Portfolio &amp; <span class="font-serif-italic font-normal text-purple-400 italic">Liquidity</span> Dashboard
+                            </h2>
+                            <p class="text-slate-400 text-xs md:text-sm leading-relaxed">
+                                Track portfolio valuation, monitor brand retention curves, analyze acquisition-to-retail spreads, and benchmark trade-in appraisals in real time across 8,128 vehicles.
                             </p>
                         </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <button @click="switchTab('valuation')"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 font-bold text-white text-xs shadow-lg shadow-purple-600/30 hover:shadow-purple-600/50 hover:-translate-y-0.5 transition-all">
+                                ⚡ Launch Studio
+                            </button>
+                            <button @click="switchTab('fleet')"
+                                class="px-4 py-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold transition-all">
+                                Browse Catalog (48)
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-                        <div
-                            class="h-44 bg-slate-950/40 rounded-xl border border-slate-800/60 flex items-end justify-between px-4 py-3">
-                            <div class="flex flex-col items-center gap-1.5 flex-1">
-                                <div class="w-7 bg-purple-600/35 rounded-t h-14"></div>
-                                <span class="text-[10px] text-slate-500">2y</span>
+                <!-- ═══ TOP 5 EXECUTIVE KPI METRIC CARDS ═══ -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                    <!-- KPI 1 -->
+                    <div class="glass-panel glass-panel-hover rounded-2xl p-4.5 border border-slate-800/80">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Portfolio Value</span>
+                            <span class="text-base">💎</span>
+                        </div>
+                        <p class="text-2xl md:text-3xl font-extrabold text-purple-300">₹51.8 Cr</p>
+                        <p class="text-[11px] text-emerald-400 flex items-center gap-1 mt-1 font-semibold">
+                            <span>↑ +14.2%</span> <span class="text-slate-500 font-normal">MoM Capital</span>
+                        </p>
+                    </div>
+
+                    <!-- KPI 2 -->
+                    <div class="glass-panel glass-panel-hover rounded-2xl p-4.5 border border-slate-800/80">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Fleet</span>
+                            <span class="text-base">🚗</span>
+                        </div>
+                        <p class="text-2xl md:text-3xl font-extrabold text-white">8,128</p>
+                        <p class="text-[11px] text-purple-400 flex items-center gap-1 mt-1 font-semibold">
+                            <span>32 Brands</span> <span class="text-slate-500 font-normal">monitored</span>
+                        </p>
+                    </div>
+
+                    <!-- KPI 3 -->
+                    <div class="glass-panel glass-panel-hover rounded-2xl p-4.5 border border-slate-800/80">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Avg Selling Price</span>
+                            <span class="text-base">📈</span>
+                        </div>
+                        <p class="text-2xl md:text-3xl font-extrabold text-emerald-400">₹6.38 L</p>
+                        <p class="text-[11px] text-slate-400 flex items-center gap-1 mt-1">
+                            <span>Median:</span> <span class="text-slate-200 font-semibold">₹4.50 Lakh</span>
+                        </p>
+                    </div>
+
+                    <!-- KPI 4 -->
+                    <div class="glass-panel glass-panel-hover rounded-2xl p-4.5 border border-slate-800/80">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Dealer Margin</span>
+                            <span class="text-base">🎯</span>
+                        </div>
+                        <p class="text-2xl md:text-3xl font-extrabold text-indigo-400">+12.5%</p>
+                        <p class="text-[11px] text-slate-400 flex items-center gap-1 mt-1">
+                            <span class="text-emerald-400 font-semibold">₹82.5k</span> <span class="text-slate-500">spread/car</span>
+                        </p>
+                    </div>
+
+                    <!-- KPI 5 -->
+                    <div class="glass-panel glass-panel-hover rounded-2xl p-4.5 border border-slate-800/80 col-span-2 md:col-span-1">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Turnover Speed</span>
+                            <span class="text-base">⚡</span>
+                        </div>
+                        <p class="text-2xl md:text-3xl font-extrabold text-amber-400">18.2 Days</p>
+                        <p class="text-[11px] text-emerald-400 flex items-center gap-1 mt-1 font-semibold">
+                            <span>↓ 3.4 days</span> <span class="text-slate-500 font-normal">High Liquidity</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ═══ INTERACTIVE CHARTS ROW 1 ═══ -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Chart 1: Price Trend by Manufacturing Year (2 cols) -->
+                    <div class="lg:col-span-2 glass-panel rounded-2xl p-5 md:p-6 border border-slate-800/80">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                            <div>
+                                <h3 class="font-bold text-white text-sm md:text-base flex items-center gap-2">
+                                    <span>📈</span> Valuation Trend by Model Year (2008 – 2020)
+                                </h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Average selling transaction price in ₹ Lakhs calibrated on 8,128 transactions</p>
                             </div>
-                            <div class="flex flex-col items-center gap-1.5 flex-1">
-                                <div class="w-7 bg-purple-600/50 rounded-t h-24"></div>
-                                <span class="text-[10px] text-slate-500">4y</span>
+                            <span class="text-[10px] font-bold text-purple-300 bg-purple-950/60 px-2.5 py-1 rounded-full border border-purple-800/40 shrink-0">
+                                Residual Curve
+                            </span>
+                        </div>
+                        <div class="relative h-64 md:h-72 w-full">
+                            <canvas id="chartYearPrice"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Brand Distribution Donut (1 col) -->
+                    <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800/80 flex flex-col justify-between">
+                        <div class="mb-3">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-bold text-white text-sm md:text-base flex items-center gap-2">
+                                    <span>🍩</span> Fleet OEM Share
+                                </h3>
+                                <span class="text-[10px] text-slate-400">Top 7 Brands</span>
                             </div>
-                            <div class="flex flex-col items-center gap-1.5 flex-1">
-                                <div class="w-7 bg-purple-600/65 rounded-t h-20"></div>
-                                <span class="text-[10px] text-slate-500">6y</span>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Maruti &amp; Hyundai hold 47.5% volume</p>
+                        </div>
+                        <div class="relative h-56 w-full flex items-center justify-center">
+                            <canvas id="chartBrandShare"></canvas>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-slate-800/60 text-center">
+                            <span class="text-[11px] text-slate-400">Dominant segment: <strong class="text-purple-300">Maruti (30.1%)</strong> &amp; <strong class="text-indigo-300">Hyundai (17.4%)</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ INTERACTIVE CHARTS ROW 2 ═══ -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Chart 3: Price Bracket Distribution -->
+                    <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800/80">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-white text-sm md:text-base flex items-center gap-2">
+                                    <span>📊</span> Inventory Price Tier Distribution
+                                </h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Volume of vehicles across commercial resale price segments</p>
                             </div>
-                            <div class="flex flex-col items-center gap-1.5 flex-1">
-                                <div class="w-7 bg-purple-600 rounded-t h-32 shadow-lg shadow-purple-600/50"></div>
-                                <span class="text-[10px] text-purple-400 font-bold">Optimal</span>
+                            <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-800/40">
+                                65% &lt; ₹6 Lakh
+                            </span>
+                        </div>
+                        <div class="relative h-60 w-full">
+                            <canvas id="chartPriceBrackets"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 4: Fuel & Transmission Mix -->
+                    <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800/80">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-white text-sm md:text-base flex items-center gap-2">
+                                    <span>⚙️</span> Powertrain &amp; Fuel Distribution
+                                </h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Breakdown across Diesel, Petrol, CNG and Manual vs Automatic</p>
                             </div>
-                            <div class="flex flex-col items-center gap-1.5 flex-1">
-                                <div class="w-7 bg-purple-600/80 rounded-t h-28"></div>
-                                <span class="text-[10px] text-slate-500">8y</span>
+                            <span class="text-[10px] font-bold text-purple-300 bg-purple-950/60 px-2.5 py-1 rounded-full border border-purple-800/40">
+                                54% Diesel
+                            </span>
+                        </div>
+                        <div class="relative h-60 w-full">
+                            <canvas id="chartFuelTrans"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ QUICK APPRAISAL SIMULATOR WIDGET ═══ -->
+                <div class="gradient-border-box p-6 md:p-8 overflow-hidden">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-800/80">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-purple-400 mb-1 block">Interactive Dealership Benchmark</span>
+                            <h3 class="text-lg md:text-xl font-bold text-white">Instant Commercial Valuation Simulator</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Configure vehicle parameters to benchmark acquisition price and retail spread</p>
+                        </div>
+                        <button @click="switchTab('valuation')"
+                            class="self-start md:self-auto px-4 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-semibold transition-all">
+                            Open Full Valuation Studio →
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Brand</label>
+                            <select x-model="estimator.brand" @change="calculateValuation()"
+                                class="w-full bg-slate-950/80 border border-slate-700/70 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                                <option>Maruti</option><option>Hyundai</option><option>Honda</option>
+                                <option>Toyota</option><option>Mahindra</option><option>Tata</option>
+                                <option>Ford</option><option>Renault</option><option>BMW</option>
+                                <option>Mercedes-Benz</option><option>Audi</option><option>Skoda</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Manufacturing Year</label>
+                                <span class="text-[11px] font-bold text-purple-400" x-text="`${estimator.year} (${2026 - estimator.year}y)`"></span>
+                            </div>
+                            <select x-model="estimator.year" @change="calculateValuation()"
+                                class="w-full bg-slate-950/80 border border-slate-700/70 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                                <option value="2024">2024 (2 yrs)</option>
+                                <option value="2022">2022 (4 yrs)</option>
+                                <option value="2020">2020 (6 yrs)</option>
+                                <option value="2018">2018 (8 yrs)</option>
+                                <option value="2016">2016 (10 yrs)</option>
+                                <option value="2014">2014 (12 yrs)</option>
+                                <option value="2012">2012 (14 yrs)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Kilometers Driven</label>
+                            <input type="number" x-model="estimator.km" @input="calculateValuation()" step="5000"
+                                class="w-full bg-slate-950/80 border border-slate-700/70 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Transmission &amp; Fuel</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <select x-model="estimator.transmission" @change="calculateValuation()"
+                                    class="w-full bg-slate-950/80 border border-slate-700/70 rounded-xl px-2.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                                    <option>Manual</option><option>Automatic</option>
+                                </select>
+                                <select x-model="estimator.fuel" @change="calculateValuation()"
+                                    class="w-full bg-slate-950/80 border border-slate-700/70 rounded-xl px-2.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                                    <option>Diesel</option><option>Petrol</option><option>CNG</option>
+                                </select>
                             </div>
                         </div>
+                    </div>
 
-                        <p class="text-[11px] text-slate-400 mt-3 text-center">Peak liquidity and dealer margin observed
-                            in 4–6 year category.</p>
+                    <!-- Valuation Output Results Strip -->
+                    <div class="p-5 rounded-xl bg-slate-950/80 border border-purple-500/30 flex flex-col md:flex-row items-center justify-between gap-5">
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-purple-400">Appraised Resale (Fair Market Value)</p>
+                            <p class="text-3xl md:text-4xl font-extrabold text-white tracking-tight mt-0.5" x-text="valuationResult.formatted"></p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-4 text-xs">
+                            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                                <span class="text-[10px] text-slate-400 uppercase block font-semibold">Dealer Buy-In</span>
+                                <span class="text-base font-bold text-emerald-400" x-text="valuationResult.buyPrice"></span>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                                <span class="text-[10px] text-slate-400 uppercase block font-semibold">Target Retail</span>
+                                <span class="text-base font-bold text-purple-300" x-text="valuationResult.retailPrice"></span>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                                <span class="text-[10px] text-slate-400 uppercase block font-semibold">Gross Spread</span>
+                                <span class="text-base font-bold text-indigo-300" x-text="valuationResult.margin"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Recent Vehicles Table -->
-                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-base text-white">Recent Fleet Inventory Appraisals</h3>
-                        <button @click="currentTab = 'fleet'"
-                            class="text-xs text-purple-400 hover:text-purple-300 font-semibold">View All 8,128 Vehicles
-                            →</button>
+                <!-- ═══ RECENT FLEET APPRAISALS FEED ═══ -->
+                <div class="glass-panel rounded-2xl border border-slate-800/80 overflow-hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between px-5 md:px-6 py-4 border-b border-slate-800/60 gap-3">
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base flex items-center gap-2">
+                                <span>📋</span> Recent Fleet Appraisals &amp; Active Inventory
+                            </h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Showing 8 recently audited fleet vehicles with instant appraisal shortcuts</p>
+                        </div>
+                        <button @click="switchTab('fleet')"
+                            class="text-xs text-purple-400 hover:text-purple-300 font-semibold self-start sm:self-auto">
+                            View All 48 Fleet Cars →
+                        </button>
                     </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
-                            <thead class="text-xs uppercase bg-slate-950/60 text-slate-400 border-b border-slate-800">
+                            <thead class="text-[10px] uppercase bg-slate-950/80 text-slate-400 border-b border-slate-800/60">
                                 <tr>
-                                    <th class="py-3 px-4">Vehicle Model</th>
-                                    <th class="py-3 px-4">Fuel / Transmission</th>
-                                    <th class="py-3 px-4">Odometer</th>
-                                    <th class="py-3 px-4">Appraised Resale (FMV)</th>
-                                    <th class="py-3 px-4">Target Dealer Buy-In</th>
-                                    <th class="py-3 px-4">Liquidity Rating</th>
+                                    <th class="py-3 px-4 md:px-6 font-semibold">Vehicle Model</th>
+                                    <th class="py-3 px-4 font-semibold">Year &amp; Age</th>
+                                    <th class="py-3 px-4 font-semibold">Powertrain</th>
+                                    <th class="py-3 px-4 font-semibold">Odometer</th>
+                                    <th class="py-3 px-4 font-semibold">Fair Market Value</th>
+                                    <th class="py-3 px-4 font-semibold">Buy-in Benchmark</th>
+                                    <th class="py-3 px-4 font-semibold">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-800/60">
-                                <template x-for="car in sampleCars.slice(0, 5)" :key="car.id">
-                                    <tr class="hover:bg-slate-800/30 transition-colors">
-                                        <td class="py-3 px-4 font-medium text-white flex items-center gap-2">
-                                            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                                            <span x-text="car.name"></span>
+                            <tbody class="divide-y divide-slate-800/50">
+                                <template x-for="car in sampleCars.slice(0, 8)" :key="car.id">
+                                    <tr class="hover:bg-purple-600/5 transition-colors duration-150">
+                                        <td class="py-3 px-4 md:px-6 font-semibold text-white">
+                                            <div class="flex items-center gap-2.5">
+                                                <span class="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
+                                                <span x-text="car.name" class="truncate max-w-[200px] md:max-w-none"></span>
+                                            </div>
                                         </td>
-                                        <td class="py-3 px-4 text-slate-300"
-                                            x-text="`${car.fuel} · ${car.transmission}`"></td>
-                                        <td class="py-3 px-4 text-slate-300" x-text="`${car.km.toLocaleString()} km`">
-                                        </td>
-                                        <td class="py-3 px-4 font-bold text-purple-300" x-text="formatInr(car.price)">
-                                        </td>
-                                        <td class="py-3 px-4 font-semibold text-emerald-400"
-                                            x-text="formatInr(car.price * 0.9)"></td>
-                                        <td class="py-3 px-4">
-                                            <span class="px-2.5 py-1 rounded-full text-xs font-medium"
-                                                :class="car.status === 'High Demand' ? 'bg-purple-950 text-purple-300 border border-purple-800/50' : 'bg-emerald-950 text-emerald-300 border border-emerald-800/50'"
-                                                x-text="car.status"></span>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Tab 2: Fleet Inventory View -->
-            <div x-show="currentTab === 'fleet'" class="p-6 md:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-2xl font-extrabold text-white">Commercial Fleet Catalog</h2>
-                        <p class="text-xs text-slate-400">Search and evaluate vehicles with real-time acquisition and
-                            retail price guidance.</p>
-                    </div>
-                    <div class="flex items-center gap-3 w-full sm:w-auto">
-                        <input type="text" x-model="searchQuery" placeholder="Search by model or brand..."
-                            class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500 w-full sm:w-64">
-                    </div>
-                </div>
-
-                <!-- Filtered Catalog Table -->
-                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-xl">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="text-xs uppercase bg-slate-950 text-slate-400 border-b border-slate-800">
-                                <tr>
-                                    <th class="py-3.5 px-4">Vehicle Model</th>
-                                    <th class="py-3.5 px-4">Year & Age</th>
-                                    <th class="py-3.5 px-4">Powertrain</th>
-                                    <th class="py-3.5 px-4">Mileage & Power</th>
-                                    <th class="py-3.5 px-4">Kilometers</th>
-                                    <th class="py-3.5 px-4">Fair Market Value</th>
-                                    <th class="py-3.5 px-4">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-800/60">
-                                <template x-for="car in filteredCars" :key="car.id">
-                                    <tr class="hover:bg-slate-800/40 transition-colors">
-                                        <td class="py-3 px-4 font-semibold text-white" x-text="car.name"></td>
-                                        <td class="py-3 px-4 text-slate-300"
-                                            x-text="`${car.year} (${2026 - car.year}y)`"></td>
-                                        <td class="py-3 px-4 text-slate-300"
-                                            x-text="`${car.fuel} · ${car.transmission}`"></td>
-                                        <td class="py-3 px-4 text-slate-300"
-                                            x-text="`${car.mileage} kmpl · ${car.power} bhp`"></td>
-                                        <td class="py-3 px-4 text-slate-300" x-text="`${car.km.toLocaleString()} km`">
-                                        </td>
-                                        <td class="py-3 px-4 font-bold text-purple-300" x-text="formatInr(car.price)">
-                                        </td>
+                                        <td class="py-3 px-4 text-slate-300 text-xs" x-text="`${car.year} (${2026 - car.year}y)`"></td>
+                                        <td class="py-3 px-4 text-slate-300 text-xs" x-text="`${car.fuel} · ${car.transmission}`"></td>
+                                        <td class="py-3 px-4 text-slate-300 text-xs" x-text="`${car.km.toLocaleString()} km`"></td>
+                                        <td class="py-3 px-4 font-bold text-purple-300 text-xs" x-text="formatInr(car.price)"></td>
+                                        <td class="py-3 px-4 font-semibold text-emerald-400 text-xs" x-text="formatInr(car.price * 0.90)"></td>
                                         <td class="py-3 px-4">
                                             <button @click="loadCarIntoEstimator(car)"
-                                                class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 transition-all">
+                                                class="px-3 py-1 rounded-lg bg-purple-600/15 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-semibold transition-all">
                                                 Appraise
                                             </button>
                                         </td>
@@ -460,276 +552,1184 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- ═══ FLEET ADVISORY INSIGHT CARDS ═══ -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-panel rounded-2xl p-4.5 border border-slate-800/80">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-lg">🚀</span>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider">High Velocity Segment</h4>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Sub-₹6 Lakh diesel manual hatchbacks (Maruti Swift, Hyundai i20) sell <strong>38% faster</strong> with lowest holding costs.
+                        </p>
+                    </div>
+
+                    <div class="glass-panel rounded-2xl p-4.5 border border-slate-800/80">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-lg">💡</span>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Margin Optimization</h4>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Automatic luxury sedans (BMW, Mercedes, Audi) command <strong>₹1.5L – ₹2.5L spreads</strong>, providing highest per-unit profits.
+                        </p>
+                    </div>
+
+                    <div class="glass-panel rounded-2xl p-4.5 border border-slate-800/80">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-lg">⚠️</span>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Depreciation Warning</h4>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Vehicles reaching 8+ years experience sharp <strong>18% annual depreciation</strong>. Liquidate prior to 84 months lifecycle.
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Tab 3: AI Price Estimator View -->
-            <div x-show="currentTab === 'valuation'" class="p-6 md:p-8 space-y-8">
-                <div class="max-w-4xl mx-auto">
-                    <div class="text-center mb-8">
-                        <span class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-2 block">Enterprise
-                            Pricing Studio</span>
-                        <h2 class="text-3xl font-extrabold text-white">Commercial Vehicle Valuation Studio</h2>
-                        <p class="text-slate-400 text-sm mt-1">Calibrated on comprehensive market transaction
-                            intelligence across 8,100+ commercial and consumer vehicles.</p>
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- ═══ TAB 2: PRICE APPRAISAL STUDIO           ═══ -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div x-show="currentTab === 'valuation'"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-3"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="p-4 md:p-8 space-y-6">
+
+                <div class="max-w-5xl mx-auto space-y-6">
+                    <!-- Header -->
+                    <div class="text-center max-w-2xl mx-auto">
+                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-purple-400 mb-2 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">
+                            ⚡ Fixora Valuation Engine
+                        </span>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Commercial Vehicle Valuation Studio</h2>
+                        <p class="text-slate-400 text-xs md:text-sm mt-1">Algorithmic pricing engine calibrated on 8,128 transactions with multi-variable residual modeling</p>
                     </div>
 
-                    <!-- Preset Selector Row -->
-                    <div class="mb-6 flex flex-wrap items-center justify-center gap-2">
-                        <span class="text-xs font-semibold text-slate-400 mr-2">Quick Profiles:</span>
-                        <button @click="setPreset('swift')"
-                            class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-800 hover:bg-purple-900/60 text-slate-200 border border-slate-700 hover:border-purple-500 transition-all">Maruti
-                            Swift Dzire</button>
-                        <button @click="setPreset('city')"
-                            class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-800 hover:bg-purple-900/60 text-slate-200 border border-slate-700 hover:border-purple-500 transition-all">Honda
-                            City Petrol</button>
-                        <button @click="setPreset('duster')"
-                            class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-800 hover:bg-purple-900/60 text-slate-200 border border-slate-700 hover:border-purple-500 transition-all">Renault
-                            Duster Diesel</button>
-                        <button @click="setPreset('bmw')"
-                            class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-800 hover:bg-purple-900/60 text-slate-200 border border-slate-700 hover:border-purple-500 transition-all">BMW
-                            3 Series</button>
+                    <!-- Preset Profiles Bar -->
+                    <div class="flex flex-wrap items-center justify-center gap-2">
+                        <span class="text-xs font-semibold text-slate-400 mr-1">Quick Presets:</span>
+                        <template x-for="(preset, key) in presetList" :key="key">
+                            <button @click="setPreset(key)"
+                                class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-900/80 hover:bg-purple-600/20 text-slate-300 hover:text-purple-300 border border-slate-700/80 hover:border-purple-500/40 transition-all active:scale-95"
+                                x-text="preset.label"></button>
+                        </template>
                     </div>
 
-                    <!-- Valuation Form Panel -->
-                    <div
-                        class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+                    <!-- Valuation Form Container -->
+                    <div class="glass-panel rounded-2xl border border-slate-800/80 p-5 md:p-8 shadow-2xl">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <!-- Col 1 -->
-                            <div>
-                                <label
-                                    class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Vehicle
-                                    Brand / Make</label>
-                                <select x-model="estimator.brand" @change="calculateValuation()"
-                                    class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500">
-                                    <option>Maruti</option>
-                                    <option>Hyundai</option>
-                                    <option>Honda</option>
-                                    <option>Toyota</option>
-                                    <option>Mahindra</option>
-                                    <option>Tata</option>
-                                    <option>Ford</option>
-                                    <option>Renault</option>
-                                    <option>BMW</option>
-                                    <option>Mercedes-Benz</option>
-                                    <option>Audi</option>
-                                    <option>Skoda</option>
-                                    <option>Volkswagen</option>
-                                </select>
-
-                                <div class="mt-4">
-                                    <div class="flex justify-between items-center mb-1">
-                                        <label
-                                            class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Manufacturing
-                                            Year</label>
-                                        <span class="text-xs font-bold text-purple-400"
-                                            x-text="`${estimator.year} (${2026 - estimator.year} yrs)`"></span>
-                                    </div>
-                                    <input type="range" min="2005" max="2026" x-model="estimator.year"
-                                        @input="calculateValuation()"
-                                        class="w-full accent-purple-600 bg-slate-800 rounded-lg cursor-pointer">
+                            <!-- Column 1 -->
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Brand / OEM</label>
+                                    <select x-model="estimator.brand" @change="calculateValuation()"
+                                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500">
+                                        <option>Maruti</option><option>Hyundai</option><option>Honda</option>
+                                        <option>Toyota</option><option>Mahindra</option><option>Tata</option>
+                                        <option>Ford</option><option>Renault</option><option>BMW</option>
+                                        <option>Mercedes-Benz</option><option>Audi</option><option>Skoda</option>
+                                        <option>Volkswagen</option>
+                                    </select>
                                 </div>
-
-                                <div class="mt-4">
-                                    <label
-                                        class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Kilometers
-                                        Driven</label>
-                                    <input type="number" x-model="estimator.km" @input="calculateValuation()"
-                                        step="2500"
+                                <div>
+                                    <div class="flex justify-between items-center mb-1.5">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Manufacturing Year</label>
+                                        <span class="text-xs font-bold text-purple-400" x-text="`${estimator.year} (${2026 - estimator.year}y)`"></span>
+                                    </div>
+                                    <input type="range" min="2005" max="2026" x-model="estimator.year" @input="calculateValuation()" class="w-full">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Kilometers Driven</label>
+                                    <input type="number" x-model="estimator.km" @input="calculateValuation()" step="2500"
                                         class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Fuel Type</label>
+                                    <select x-model="estimator.fuel" @change="calculateValuation()"
+                                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500">
+                                        <option>Diesel</option><option>Petrol</option><option>CNG</option><option>LPG</option>
+                                    </select>
                                 </div>
                             </div>
 
-                            <!-- Col 2 -->
-                            <div>
-                                <label
-                                    class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Fuel
-                                    Type</label>
-                                <select x-model="estimator.fuel" @change="calculateValuation()"
-                                    class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500">
-                                    <option>Diesel</option>
-                                    <option>Petrol</option>
-                                    <option>CNG</option>
-                                    <option>LPG</option>
-                                </select>
-
-                                <div class="mt-4">
-                                    <label
-                                        class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Transmission</label>
+                            <!-- Column 2 -->
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Transmission</label>
                                     <select x-model="estimator.transmission" @change="calculateValuation()"
                                         class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500">
-                                        <option>Manual</option>
-                                        <option>Automatic</option>
+                                        <option>Manual</option><option>Automatic</option>
                                     </select>
                                 </div>
-
-                                <div class="mt-4">
-                                    <label
-                                        class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Ownership
-                                        Record</label>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ownership History</label>
                                     <select x-model="estimator.owner" @change="calculateValuation()"
                                         class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500">
-                                        <option>First Owner</option>
-                                        <option>Second Owner</option>
-                                        <option>Third Owner</option>
-                                        <option>Fourth & Above Owner</option>
+                                        <option>First Owner</option><option>Second Owner</option>
+                                        <option>Third Owner</option><option>Fourth &amp; Above Owner</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Seller Category</label>
+                                    <select x-model="estimator.sellerType" @change="calculateValuation()"
+                                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500">
+                                        <option>Individual</option><option>Dealer</option><option>Trustmark Dealer</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Seating Capacity</label>
+                                    <select x-model="estimator.seats" @change="calculateValuation()"
+                                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500">
+                                        <option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <!-- Col 3 -->
-                            <div>
-                                <label
-                                    class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Engine
-                                    Displacement (CC)</label>
-                                <input type="number" x-model="estimator.engine" @input="calculateValuation()" step="50"
-                                    class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500">
-
-                                <div class="mt-4">
-                                    <label
-                                        class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Max
-                                        Power (bhp)</label>
-                                    <input type="number" x-model="estimator.power" @input="calculateValuation()"
-                                        step="5"
+                            <!-- Column 3 -->
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Engine Displacement (CC)</label>
+                                    <input type="number" x-model="estimator.engine" @input="calculateValuation()" step="50"
                                         class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500">
                                 </div>
-
-                                <div class="mt-4">
-                                    <label
-                                        class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Mileage
-                                        (kmpl)</label>
-                                    <input type="number" x-model="estimator.mileage" @input="calculateValuation()"
-                                        step="0.5"
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Max Power (bhp)</label>
+                                    <input type="number" x-model="estimator.power" @input="calculateValuation()" step="5"
+                                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Fuel Economy (kmpl)</label>
+                                    <input type="number" x-model="estimator.mileage" @input="calculateValuation()" step="0.5"
                                         class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Professional Business Result Box -->
-                        <div
-                            class="p-8 rounded-2xl bg-gradient-to-r from-purple-950/50 via-slate-950 to-indigo-950/50 border border-purple-500/40 text-center relative overflow-hidden">
-                            <p class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">Estimated Fair
-                                Market Value (FMV)</p>
-                            <div class="text-4xl sm:text-6xl font-extrabold text-white my-2 tracking-tight"
-                                x-text="valuationResult.formatted"></div>
+                        <!-- Valuation Result Card -->
+                        <div class="gradient-border-box p-6 md:p-10 text-center relative overflow-hidden">
+                            <div class="relative z-10">
+                                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-400 mb-1">Estimated Fair Market Value (FMV)</p>
+                                <div class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight my-2"
+                                    x-text="valuationResult.formatted"
+                                    style="text-shadow: 0 0 50px rgba(192, 132, 252, 0.2);"></div>
 
-                            <!-- Financial Guidance Row -->
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto my-6 text-left">
-                                <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
-                                    <p class="text-[10px] text-slate-400 uppercase font-semibold">Suggested Dealer
-                                        Buy-in</p>
-                                    <p class="text-lg font-bold text-emerald-400" x-text="valuationResult.buyPrice"></p>
+                                <!-- Financial Breakdown Row -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto my-6">
+                                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                        <p class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Target Buy-In Price</p>
+                                        <p class="text-lg font-extrabold text-emerald-400 mt-0.5" x-text="valuationResult.buyPrice"></p>
+                                    </div>
+                                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                        <p class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Target Retail Listing</p>
+                                        <p class="text-lg font-extrabold text-purple-300 mt-0.5" x-text="valuationResult.retailPrice"></p>
+                                    </div>
+                                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                        <p class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Projected Gross Margin</p>
+                                        <p class="text-lg font-extrabold text-indigo-300 mt-0.5" x-text="valuationResult.margin"></p>
+                                    </div>
                                 </div>
-                                <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
-                                    <p class="text-[10px] text-slate-400 uppercase font-semibold">Target Retail Listing
-                                    </p>
-                                    <p class="text-lg font-bold text-purple-300" x-text="valuationResult.retailPrice">
-                                    </p>
-                                </div>
-                                <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
-                                    <p class="text-[10px] text-slate-400 uppercase font-semibold">Projected Gross Margin
-                                    </p>
-                                    <p class="text-lg font-bold text-indigo-300" x-text="valuationResult.margin"></p>
-                                </div>
-                            </div>
 
-                            <div class="flex flex-wrap justify-center gap-2">
-                                <span
-                                    class="px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-slate-700 text-xs text-slate-300 font-medium"
-                                    x-text="`🚘 ${estimator.brand}`"></span>
-                                <span
-                                    class="px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-slate-700 text-xs text-slate-300 font-medium"
-                                    x-text="`📅 ${estimator.year} (${2026 - estimator.year} yrs)`"></span>
-                                <span
-                                    class="px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-slate-700 text-xs text-slate-300 font-medium"
-                                    x-text="`🛣️ ${Number(estimator.km).toLocaleString()} km`"></span>
-                                <span
-                                    class="px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-slate-700 text-xs text-slate-300 font-medium"
-                                    x-text="`⚡ ${estimator.power} bhp`"></span>
-                                <span
-                                    class="px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-slate-700 text-xs text-slate-300 font-medium"
-                                    x-text="`🏎️ ${estimator.engine} CC`"></span>
-                                <span
-                                    class="px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-slate-700 text-xs text-slate-300 font-medium"
-                                    x-text="`⚙️ ${estimator.transmission}`"></span>
+                                <!-- Vehicle Spec Pills -->
+                                <div class="flex flex-wrap justify-center gap-2">
+                                    <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300 font-medium" x-text="`🚘 ${estimator.brand}`"></span>
+                                    <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300 font-medium" x-text="`📅 ${estimator.year} (${2026 - estimator.year}y)`"></span>
+                                    <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300 font-medium" x-text="`🛣️ ${Number(estimator.km).toLocaleString()} km`"></span>
+                                    <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300 font-medium" x-text="`⚡ ${estimator.power} bhp`"></span>
+                                    <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300 font-medium" x-text="`🏎️ ${estimator.engine} CC`"></span>
+                                    <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300 font-medium" x-text="`⚙️ ${estimator.transmission}`"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab 4: Analytics View -->
-            <div x-show="currentTab === 'analytics'" class="p-6 md:p-8 space-y-6">
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- ═══ TAB 3: FLEET INVENTORY CATALOG         ═══ -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div x-show="currentTab === 'fleet'"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-3"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="p-4 md:p-8 space-y-5">
+
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-extrabold text-white">Commercial Fleet Catalog</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Live audited vehicles from enterprise dealership inventory</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <div class="relative w-full sm:w-72">
+                            <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <input type="text" x-model="searchQuery" placeholder="Search by name or brand..."
+                                class="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500 placeholder:text-slate-500">
+                        </div>
+                        <button @click="exportFleetCSV()"
+                            class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-all">
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Desktop Table View -->
+                <div class="hidden md:block glass-panel rounded-2xl border border-slate-800/80 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="text-[10px] uppercase bg-slate-950 text-slate-400 border-b border-slate-800/80">
+                                <tr>
+                                    <th class="py-3.5 px-5 font-semibold">Vehicle Model</th>
+                                    <th class="py-3.5 px-4 font-semibold">Year &amp; Age</th>
+                                    <th class="py-3.5 px-4 font-semibold">Powertrain</th>
+                                    <th class="py-3.5 px-4 font-semibold">Fuel &amp; Power</th>
+                                    <th class="py-3.5 px-4 font-semibold">Kilometers</th>
+                                    <th class="py-3.5 px-4 font-semibold">Fair Market Value</th>
+                                    <th class="py-3.5 px-4 font-semibold">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/50">
+                                <template x-for="car in filteredCars" :key="car.id">
+                                    <tr class="hover:bg-purple-600/5 transition-colors duration-150">
+                                        <td class="py-3.5 px-5 font-semibold text-white" x-text="car.name"></td>
+                                        <td class="py-3.5 px-4 text-slate-300 text-xs" x-text="`${car.year} (${2026 - car.year}y)`"></td>
+                                        <td class="py-3.5 px-4 text-slate-300 text-xs" x-text="`${car.fuel} · ${car.transmission}`"></td>
+                                        <td class="py-3.5 px-4 text-slate-400 text-xs" x-text="`${car.mileage} kmpl · ${car.power} bhp`"></td>
+                                        <td class="py-3.5 px-4 text-slate-300 text-xs" x-text="`${car.km.toLocaleString()} km`"></td>
+                                        <td class="py-3.5 px-4 font-bold text-purple-300 text-xs" x-text="formatInr(car.price)"></td>
+                                        <td class="py-3.5 px-4">
+                                            <button @click="loadCarIntoEstimator(car)"
+                                                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-purple-600/15 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 transition-all">
+                                                Appraise →
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Mobile Cards View -->
+                <div class="md:hidden space-y-3">
+                    <template x-for="car in filteredCars" :key="car.id">
+                        <div class="glass-panel rounded-xl p-4 border border-slate-800/80" @click="loadCarIntoEstimator(car)">
+                            <div class="flex items-start justify-between mb-2">
+                                <p class="font-bold text-white text-sm" x-text="car.name"></p>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-950 text-purple-300 border border-purple-800/40" x-text="car.status"></span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-3 text-[10px] text-slate-400">
+                                <span class="bg-slate-900 px-2 py-0.5 rounded-full" x-text="`${car.year} (${2026-car.year}y)`"></span>
+                                <span class="bg-slate-900 px-2 py-0.5 rounded-full" x-text="`${car.fuel} · ${car.transmission}`"></span>
+                                <span class="bg-slate-900 px-2 py-0.5 rounded-full" x-text="`${car.km.toLocaleString()} km`"></span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-extrabold text-purple-300" x-text="formatInr(car.price)"></span>
+                                <span class="text-xs text-emerald-400 font-semibold" x-text="'Buy: ' + formatInr(car.price * 0.9)"></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- ═══ TAB 4: MARKET INTELLIGENCE & ANALYTICS  ═══ -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div x-show="currentTab === 'analytics'"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-3"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="p-4 md:p-8 space-y-6">
+
                 <div>
-                    <h2 class="text-2xl font-extrabold text-white">Commercial Fleet Market Intelligence</h2>
-                    <p class="text-xs text-slate-400">Capital retention, residual curves, and demand trends observed
-                        across 8,128 vehicle transactions.</p>
+                    <h2 class="text-xl md:text-2xl font-extrabold text-white">Market Intelligence &amp; Residual Curves</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Historical retention, brand premiums, and lifecycle turnover windows across 8,128 transactions</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl">
-                        <h3 class="font-bold text-white text-base mb-2">Powertrain Premium & Value Retention</h3>
-                        <p class="text-xs text-slate-400 mb-4">High-displacement and high-bhp configurations exhibit 28%
-                            higher price retention over 5 years compared to standard commuter vehicles.</p>
-                        <div
-                            class="h-44 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col items-center justify-center p-4 text-center">
-                            <span class="text-3xl font-extrabold text-purple-400">+28.4%</span>
-                            <span class="text-xs text-slate-400 mt-1">Premium Tier Residual Premium</span>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-lg">⚡</div>
+                            <div>
+                                <h3 class="font-bold text-sm text-white">Powertrain Retention</h3>
+                                <p class="text-[10px] text-slate-400">5-Year Lifecycle Benchmark</p>
+                            </div>
                         </div>
+                        <div class="h-28 bg-slate-950/70 rounded-xl border border-slate-800/60 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-extrabold text-purple-400">+28.4%</span>
+                            <span class="text-[10px] text-slate-400 mt-1">Premium Tier Residual Advantage</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-3.5 leading-relaxed">
+                            Vehicles over 100 bhp with displacement &gt; 1500 CC maintain 28% higher residual valuation at Year 5.
+                        </p>
                     </div>
 
-                    <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl">
-                        <h3 class="font-bold text-white text-base mb-2">Optimal Trade-In Window</h3>
-                        <p class="text-xs text-slate-400 mb-4">Commercial fleet turnover between Year 3 and Year 5
-                            unlocks the lowest total cost of ownership (TCO) and captures peak recovery rates.</p>
-                        <div
-                            class="h-44 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col items-center justify-center p-4 text-center">
-                            <span class="text-3xl font-extrabold text-emerald-400">36 – 60 Months</span>
-                            <span class="text-xs text-slate-400 mt-1">Maximum Capital Recovery Lifecycle</span>
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-lg">📅</div>
+                            <div>
+                                <h3 class="font-bold text-sm text-white">Optimal Trade-In</h3>
+                                <p class="text-[10px] text-slate-400">Capital Recovery Velocity</p>
+                            </div>
                         </div>
+                        <div class="h-28 bg-slate-950/70 rounded-xl border border-slate-800/60 flex flex-col items-center justify-center">
+                            <span class="text-3xl font-extrabold text-emerald-400">36 – 60 Mo</span>
+                            <span class="text-[10px] text-slate-400 mt-1">Peak Dealer Gross Margin Window</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-3.5 leading-relaxed">
+                            Turnover between Month 36 and 60 delivers optimal balance of minimal reconditioning costs and strong consumer demand.
+                        </p>
+                    </div>
+
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-lg">🏷️</div>
+                            <div>
+                                <h3 class="font-bold text-sm text-white">OEM Brand Multipliers</h3>
+                                <p class="text-[10px] text-slate-400">Valuation Factor Tiers</p>
+                            </div>
+                        </div>
+                        <div class="h-28 bg-slate-950/70 rounded-xl border border-slate-800/60 p-2.5 overflow-y-auto space-y-1">
+                            <template x-for="(mult, brand) in brandTiers" :key="brand">
+                                <div class="flex justify-between items-center text-xs px-2 py-0.5 border-b border-slate-800/40 last:border-0">
+                                    <span class="text-slate-300" x-text="brand"></span>
+                                    <span class="font-bold" :class="mult >= 2 ? 'text-purple-400' : (mult >= 1.1 ? 'text-emerald-400' : 'text-slate-400')" x-text="`${mult}x`"></span>
+                                </div>
+                            </template>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-3.5 leading-relaxed">
+                            Luxury European OEM brands hold 3.5x–4.0x valuation coefficients compared to standard market benchmarks.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Annual Depreciation Curve Bar Chart -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-800/80">
+                    <h3 class="font-bold text-white text-base mb-1">Depreciation Curve by Fleet Age (Residual Value %)</h3>
+                    <p class="text-xs text-slate-400 mb-6">Theoretical residual value percentage retained relative to original MSRP</p>
+                    <div class="flex items-end justify-around h-48 bg-slate-950/60 rounded-xl border border-slate-800/60 px-4 py-4">
+                        <template x-for="(point, i) in depreciationCurve" :key="i">
+                            <div class="flex flex-col items-center gap-1.5 flex-1">
+                                <span class="text-[9px] font-bold" :class="point.pct > 60 ? 'text-emerald-400' : (point.pct > 40 ? 'text-purple-400' : 'text-rose-400')" x-text="`${point.pct}%`"></span>
+                                <div class="w-5 md:w-8 rounded-t-md transition-all duration-700"
+                                    :style="`height: ${point.pct * 1.5}px; background: linear-gradient(180deg, ${point.color}, ${point.colorEnd});`"></div>
+                                <span class="text-[10px] text-slate-400" x-text="point.label"></span>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
 
+            <!-- Footer -->
+            <footer class="hidden md:flex items-center justify-between px-8 py-4 border-t border-slate-800/50 text-[10px] text-slate-500 mt-auto">
+                <span>© 2026 Fixora Fleet Intelligence · Enterprise Automotive Valuation Platform</span>
+                <span>Calibrated on 8,128 vehicle transactions · Fixora Random Forest Core v2.4</span>
+            </footer>
         </main>
     </div>
 
-    <!-- Alpine.js Application State -->
+    <!-- ═══ MOBILE BOTTOM NAVIGATION BAR ═══ -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/95 backdrop-blur-2xl border-t border-slate-800/80 py-1.5 px-2">
+        <div class="flex justify-around">
+            <template x-for="item in navItems" :key="item.id">
+                <button @click="switchTab(item.id)"
+                    :class="currentTab === item.id ? 'text-purple-400' : 'text-slate-500'"
+                    class="flex flex-col items-center gap-0.5 py-1 px-3 transition-colors">
+                    <span class="text-base" x-text="item.icon"></span>
+                    <span class="text-[9px] font-semibold" x-text="item.shortLabel"></span>
+                </button>
+            </template>
+        </div>
+    </div>
+
+    <!-- ═══ ALPINE.JS APPLICATION STATE & CHART INITIALIZATION ═══ -->
     <script>
         function fleetApp() {
             return {
                 currentTab: 'dashboard',
                 searchQuery: '',
-                sampleCars: [
-                    { id: 1, name: "Maruti Swift Dzire VDI", brand: "Maruti", year: 2016, km: 65000, fuel: "Diesel", transmission: "Manual", owner: "First Owner", engine: 1248, power: 74.0, mileage: 24.3, price: 450000, status: "High Demand" },
-                    { id: 2, name: "Honda City 2017-2020 EXi", brand: "Honda", year: 2019, km: 35000, fuel: "Petrol", transmission: "Automatic", owner: "First Owner", engine: 1497, power: 117.3, mileage: 18.0, price: 685000, status: "Optimal" },
-                    { id: 3, name: "Renault Duster 110PS Diesel", brand: "Renault", year: 2015, km: 80000, fuel: "Diesel", transmission: "Manual", owner: "Second Owner", engine: 1461, power: 108.5, mileage: 19.8, price: 500000, status: "Fair Market" },
-                    { id: 4, name: "BMW 3 Series 320d Luxury", brand: "BMW", year: 2017, km: 40000, fuel: "Diesel", transmission: "Automatic", owner: "First Owner", engine: 1995, power: 190.0, mileage: 19.6, price: 1850000, status: "High Demand" },
-                    { id: 5, name: "Toyota Innova Crysta 2.4 VX", brand: "Toyota", year: 2018, km: 75000, fuel: "Diesel", transmission: "Manual", owner: "First Owner", engine: 2393, power: 147.5, mileage: 15.1, price: 1450000, status: "Optimal" },
-                    { id: 6, name: "Hyundai i20 Sportz Diesel", brand: "Hyundai", year: 2017, km: 50000, fuel: "Diesel", transmission: "Manual", owner: "First Owner", engine: 1396, power: 90.0, mileage: 22.5, price: 475000, status: "High Demand" }
+                chartsInitialized: false,
+
+                navItems: [
+                    { id: 'dashboard', label: '📊 Executive Dashboard', shortLabel: 'Dashboard', icon: '📊', badge: 'Live' },
+                    { id: 'valuation', label: '⚡ Valuation Studio', shortLabel: 'Appraise', icon: '⚡', badge: null },
+                    { id: 'fleet', label: '🚗 Fleet Inventory', shortLabel: 'Fleet', icon: '🚗', badge: '48' },
+                    { id: 'analytics', label: '📈 Market Intelligence', shortLabel: 'Insights', icon: '📈', badge: null },
                 ],
+
+                sampleCars: [
+  {
+    "id": 1,
+    "name": "Maruti Swift Dzire VDI",
+    "brand": "Maruti",
+    "year": 2014,
+    "km": 145500,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1248.0,
+    "power": 74.0,
+    "mileage": 23.4,
+    "price": 450000,
+    "status": "Optimal"
+  },
+  {
+    "id": 2,
+    "name": "Maruti Swift VXI BSIII",
+    "brand": "Maruti",
+    "year": 2007,
+    "km": 120000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1298.0,
+    "power": 88.2,
+    "mileage": 16.1,
+    "price": 130000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 3,
+    "name": "Maruti Wagon R LXI DUO BSIII",
+    "brand": "Maruti",
+    "year": 2007,
+    "km": 175000,
+    "fuel": "LPG",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1061.0,
+    "power": 57.5,
+    "mileage": 17.3,
+    "price": 96000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 4,
+    "name": "Maruti 800 DX BSII",
+    "brand": "Maruti",
+    "year": 2001,
+    "km": 5000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "Second Owner",
+    "engine": 796.0,
+    "power": 37.0,
+    "mileage": 16.1,
+    "price": 45000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 5,
+    "name": "Hyundai i20 Sportz Diesel",
+    "brand": "Hyundai",
+    "year": 2010,
+    "km": 127000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1396.0,
+    "power": 90.0,
+    "mileage": 23.0,
+    "price": 225000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 6,
+    "name": "Hyundai Xcent 1.2 VTVT E Plus",
+    "brand": "Hyundai",
+    "year": 2017,
+    "km": 45000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1197.0,
+    "power": 81.86,
+    "mileage": 20.14,
+    "price": 440000,
+    "status": "High Demand"
+  },
+  {
+    "id": 7,
+    "name": "Hyundai i20 1.4 CRDi Asta",
+    "brand": "Hyundai",
+    "year": 2012,
+    "km": 53000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "Second Owner",
+    "engine": 1396.0,
+    "power": 90.0,
+    "mileage": 23.0,
+    "price": 500000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 8,
+    "name": "Hyundai i20 2015-2017 Asta 1.4 CRDi",
+    "brand": "Hyundai",
+    "year": 2016,
+    "km": 100000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1396.0,
+    "power": 88.73,
+    "mileage": 22.54,
+    "price": 680000,
+    "status": "High Demand"
+  },
+  {
+    "id": 9,
+    "name": "Honda City 2017-2020 EXi",
+    "brand": "Honda",
+    "year": 2006,
+    "km": 140000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "Third Owner",
+    "engine": 1497.0,
+    "power": 78.0,
+    "mileage": 17.7,
+    "price": 158000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 10,
+    "name": "Honda WR-V i-DTEC VX",
+    "brand": "Honda",
+    "year": 2017,
+    "km": 50000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1498.0,
+    "power": 98.6,
+    "mileage": 25.5,
+    "price": 950000,
+    "status": "Optimal"
+  },
+  {
+    "id": 11,
+    "name": "Honda City i VTEC VX",
+    "brand": "Honda",
+    "year": 2018,
+    "km": 28900,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1497.0,
+    "power": 117.3,
+    "mileage": 17.8,
+    "price": 925000,
+    "status": "Optimal"
+  },
+  {
+    "id": 12,
+    "name": "Honda City V MT",
+    "brand": "Honda",
+    "year": 2013,
+    "km": 86300,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1497.0,
+    "power": 116.3,
+    "mileage": 16.8,
+    "price": 425000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 13,
+    "name": "Toyota Etios VXD",
+    "brand": "Toyota",
+    "year": 2011,
+    "km": 90000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1364.0,
+    "power": 67.1,
+    "mileage": 23.59,
+    "price": 350000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 14,
+    "name": "Toyota Fortuner 4x4 MT",
+    "brand": "Toyota",
+    "year": 2014,
+    "km": 77000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 2982.0,
+    "power": 168.5,
+    "mileage": 12.55,
+    "price": 1500000,
+    "status": "Optimal"
+  },
+  {
+    "id": 15,
+    "name": "Toyota Innova 2.5 G (Diesel) 7 Seater BS IV",
+    "brand": "Toyota",
+    "year": 2013,
+    "km": 99000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 2494.0,
+    "power": 100.0,
+    "mileage": 12.99,
+    "price": 700000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 16,
+    "name": "Toyota Innova Crysta 2.8 ZX AT BSIV",
+    "brand": "Toyota",
+    "year": 2016,
+    "km": 127700,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "Second Owner",
+    "engine": 2755.0,
+    "power": 171.5,
+    "mileage": 11.36,
+    "price": 1650000,
+    "status": "Optimal"
+  },
+  {
+    "id": 17,
+    "name": "Mahindra KUV 100 mFALCON G80 K8 5str",
+    "brand": "Mahindra",
+    "year": 2016,
+    "km": 40000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1198.0,
+    "power": 82.0,
+    "mileage": 18.15,
+    "price": 400000,
+    "status": "High Demand"
+  },
+  {
+    "id": 18,
+    "name": "Mahindra Verito 1.5 D4 BSIII",
+    "brand": "Mahindra",
+    "year": 2011,
+    "km": 100000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "Second Owner",
+    "engine": 1461.0,
+    "power": 64.1,
+    "mileage": 21.0,
+    "price": 174000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 19,
+    "name": "Mahindra Scorpio VLX AT AIRBAG BSIV",
+    "brand": "Mahindra",
+    "year": 2014,
+    "km": 70000,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "Second Owner",
+    "engine": 2179.0,
+    "power": 120.0,
+    "mileage": 11.79,
+    "price": 625000,
+    "status": "Optimal"
+  },
+  {
+    "id": 20,
+    "name": "Mahindra XUV500 W11 Option AWD",
+    "brand": "Mahindra",
+    "year": 2019,
+    "km": 32000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 2179.0,
+    "power": 155.0,
+    "mileage": 15.1,
+    "price": 1700000,
+    "status": "Optimal"
+  },
+  {
+    "id": 21,
+    "name": "Tata Tigor 2017-2020 XZ",
+    "brand": "Tata",
+    "year": 2018,
+    "km": 35000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1199.0,
+    "power": 83.81,
+    "mileage": 20.3,
+    "price": 500000,
+    "status": "High Demand"
+  },
+  {
+    "id": 22,
+    "name": "Tata Safari DICOR 2.2 LX 4x2",
+    "brand": "Tata",
+    "year": 2011,
+    "km": 60000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "Second Owner",
+    "engine": 2179.0,
+    "power": 138.03,
+    "mileage": 13.93,
+    "price": 425000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 23,
+    "name": "Tata Manza ELAN Quadrajet BS IV",
+    "brand": "Tata",
+    "year": 2011,
+    "km": 120000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1248.0,
+    "power": 88.8,
+    "mileage": 21.12,
+    "price": 265000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 24,
+    "name": "Tata Manza Aura (ABS) Quadrajet",
+    "brand": "Tata",
+    "year": 2010,
+    "km": 100000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "Second Owner",
+    "engine": 1248.0,
+    "power": 90.0,
+    "mileage": 18.8,
+    "price": 200000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 25,
+    "name": "BMW X1 sDrive20i xLine",
+    "brand": "BMW",
+    "year": 2016,
+    "km": 30000,
+    "fuel": "Petrol",
+    "transmission": "Automatic",
+    "owner": "Second Owner",
+    "engine": 1998.0,
+    "power": 189.0,
+    "mileage": 15.71,
+    "price": 2500000,
+    "status": "High Demand"
+  },
+  {
+    "id": 26,
+    "name": "BMW 5 Series 520d Sport Line",
+    "brand": "BMW",
+    "year": 2018,
+    "km": 29500,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 1995.0,
+    "power": 187.74,
+    "mileage": 22.48,
+    "price": 3790000,
+    "status": "High Demand"
+  },
+  {
+    "id": 27,
+    "name": "BMW X4 M Sport X xDrive20d",
+    "brand": "BMW",
+    "year": 2019,
+    "km": 7500,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 1995.0,
+    "power": 190.0,
+    "mileage": 16.78,
+    "price": 5800000,
+    "status": "High Demand"
+  },
+  {
+    "id": 28,
+    "name": "BMW 5 Series 523i",
+    "brand": "BMW",
+    "year": 2010,
+    "km": 72200,
+    "fuel": "Petrol",
+    "transmission": "Automatic",
+    "owner": "Second Owner",
+    "engine": 2497.0,
+    "power": 150.0,
+    "mileage": 10.8,
+    "price": 975000,
+    "status": "High Demand"
+  },
+  {
+    "id": 29,
+    "name": "Mercedes-Benz B Class B180",
+    "brand": "Mercedes-Benz",
+    "year": 2014,
+    "km": 27800,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "Second Owner",
+    "engine": 2143.0,
+    "power": 120.7,
+    "mileage": 14.8,
+    "price": 1450000,
+    "status": "High Demand"
+  },
+  {
+    "id": 30,
+    "name": "Mercedes-Benz New C-Class 220 CDI AT",
+    "brand": "Mercedes-Benz",
+    "year": 2013,
+    "km": 59000,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 2143.0,
+    "power": 170.0,
+    "mileage": 14.84,
+    "price": 1425000,
+    "status": "High Demand"
+  },
+  {
+    "id": 31,
+    "name": "Mercedes-Benz S-Class S 350 CDI",
+    "brand": "Mercedes-Benz",
+    "year": 2017,
+    "km": 37000,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 2987.0,
+    "power": 254.79,
+    "mileage": 13.5,
+    "price": 6000000,
+    "status": "High Demand"
+  },
+  {
+    "id": 32,
+    "name": "Mercedes-Benz E-Class E250 Edition E",
+    "brand": "Mercedes-Benz",
+    "year": 2016,
+    "km": 35000,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 2143.0,
+    "power": 204.0,
+    "mileage": 15.0,
+    "price": 2700000,
+    "status": "High Demand"
+  },
+  {
+    "id": 33,
+    "name": "Audi A6 2.0 TDI Technology",
+    "brand": "Audi",
+    "year": 2013,
+    "km": 33900,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "Second Owner",
+    "engine": 1968.0,
+    "power": 174.33,
+    "mileage": 17.68,
+    "price": 1750000,
+    "status": "High Demand"
+  },
+  {
+    "id": 34,
+    "name": "Audi A6 2.0 TDI  Design Edition",
+    "brand": "Audi",
+    "year": 2013,
+    "km": 50000,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 1968.0,
+    "power": 187.74,
+    "mileage": 18.53,
+    "price": 1689999,
+    "status": "High Demand"
+  },
+  {
+    "id": 35,
+    "name": "Audi Q5 35TDI Premium Plus",
+    "brand": "Audi",
+    "year": 2018,
+    "km": 31800,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 1968.0,
+    "power": 188.0,
+    "mileage": 17.01,
+    "price": 3975000,
+    "status": "High Demand"
+  },
+  {
+    "id": 36,
+    "name": "Audi Q7 35 TDI Quattro Premium",
+    "brand": "Audi",
+    "year": 2015,
+    "km": 53000,
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 2967.0,
+    "power": 241.4,
+    "mileage": 12.07,
+    "price": 2650000,
+    "status": "High Demand"
+  },
+  {
+    "id": 37,
+    "name": "Ford Figo Diesel Celebration Edition",
+    "brand": "Ford",
+    "year": 2013,
+    "km": 169000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1399.0,
+    "power": 68.1,
+    "mileage": 20.0,
+    "price": 200000,
+    "status": "Fair Market"
+  },
+  {
+    "id": 38,
+    "name": "Ford Figo 1.2P Titanium MT",
+    "brand": "Ford",
+    "year": 2017,
+    "km": 25000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "Third Owner",
+    "engine": 1196.0,
+    "power": 86.8,
+    "mileage": 18.16,
+    "price": 600000,
+    "status": "High Demand"
+  },
+  {
+    "id": 39,
+    "name": "Ford EcoSport 1.5 TDCi Titanium Plus BSIV",
+    "brand": "Ford",
+    "year": 2015,
+    "km": 90000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 1498.0,
+    "power": 98.59,
+    "mileage": 22.77,
+    "price": 610000,
+    "status": "Optimal"
+  },
+  {
+    "id": 40,
+    "name": "Ford Freestyle Titanium Petrol BSIV",
+    "brand": "Ford",
+    "year": 2020,
+    "km": 5000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "Second Owner",
+    "engine": 1194.0,
+    "power": 94.68,
+    "mileage": 19.0,
+    "price": 400000,
+    "status": "High Demand"
+  },
+  {
+    "id": 41,
+    "name": "Renault Duster 110PS Diesel RxL",
+    "brand": "Renault",
+    "year": 2014,
+    "km": 68000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "Second Owner",
+    "engine": 1461.0,
+    "power": 108.45,
+    "mileage": 19.01,
+    "price": 500000,
+    "status": "Optimal"
+  },
+  {
+    "id": 42,
+    "name": "Renault KWID 1.0",
+    "brand": "Renault",
+    "year": 2018,
+    "km": 25000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 999.0,
+    "power": 67.0,
+    "mileage": 23.01,
+    "price": 350000,
+    "status": "High Demand"
+  },
+  {
+    "id": 43,
+    "name": "Renault KWID RXT",
+    "brand": "Renault",
+    "year": 2018,
+    "km": 30000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 799.0,
+    "power": 53.3,
+    "mileage": 25.17,
+    "price": 335000,
+    "status": "High Demand"
+  },
+  {
+    "id": 44,
+    "name": "Renault KWID RXL",
+    "brand": "Renault",
+    "year": 2016,
+    "km": 40000,
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "owner": "First Owner",
+    "engine": 799.0,
+    "power": 53.3,
+    "mileage": 25.17,
+    "price": 229999,
+    "status": "High Demand"
+  },
+  {
+    "id": 45,
+    "name": "Skoda Rapid 1.5 TDI Ambition",
+    "brand": "Skoda",
+    "year": 2014,
+    "km": 120000,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "Second Owner",
+    "engine": 1498.0,
+    "power": 103.52,
+    "mileage": 21.14,
+    "price": 370000,
+    "status": "Optimal"
+  },
+  {
+    "id": 46,
+    "name": "Skoda Superb LK 1.8 TSI AT",
+    "brand": "Skoda",
+    "year": 2018,
+    "km": 50000,
+    "fuel": "Petrol",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 1798.0,
+    "power": 177.46,
+    "mileage": 14.67,
+    "price": 1864999,
+    "status": "Optimal"
+  },
+  {
+    "id": 47,
+    "name": "Skoda Rapid 1.6 MPI AT Elegance",
+    "brand": "Skoda",
+    "year": 2016,
+    "km": 11000,
+    "fuel": "Petrol",
+    "transmission": "Automatic",
+    "owner": "First Owner",
+    "engine": 1598.0,
+    "power": 103.5,
+    "mileage": 14.3,
+    "price": 645000,
+    "status": "High Demand"
+  },
+  {
+    "id": 48,
+    "name": "Skoda Rapid 1.5 TDI Elegance",
+    "brand": "Skoda",
+    "year": 2015,
+    "km": 101500,
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "owner": "Second Owner",
+    "engine": 1498.0,
+    "power": 103.52,
+    "mileage": 21.14,
+    "price": 300000,
+    "status": "Optimal"
+  }
+],
+
                 estimator: {
-                    brand: 'Maruti',
-                    year: 2018,
-                    km: 45000,
-                    fuel: 'Diesel',
-                    transmission: 'Manual',
-                    owner: 'First Owner',
-                    engine: 1248,
-                    power: 88.5,
-                    mileage: 22.5
+                    brand: 'Maruti', year: 2018, km: 45000, fuel: 'Diesel',
+                    transmission: 'Manual', owner: 'First Owner', engine: 1248,
+                    power: 88.5, mileage: 22.5, sellerType: 'Individual', seats: 5
                 },
+
                 valuationResult: {
-                    value: 485000,
-                    formatted: '₹4.85 Lakh',
-                    buyPrice: '₹4.36 Lakh',
-                    retailPrice: '₹5.33 Lakh',
-                    margin: '+₹49k – ₹97k'
+                    value: 485000, formatted: '₹4.85 Lakh',
+                    buyPrice: '₹4.36 Lakh', retailPrice: '₹5.33 Lakh', margin: '+₹49k – ₹97k'
                 },
+
+                presetList: {
+                    swift: { label: 'Maruti Swift Dzire', brand: "Maruti", year: 2016, km: 65000, fuel: "Diesel", transmission: "Manual", owner: "First Owner", engine: 1248, power: 74.0, mileage: 24.3 },
+                    city: { label: 'Honda City Petrol', brand: "Honda", year: 2019, km: 35000, fuel: "Petrol", transmission: "Automatic", owner: "First Owner", engine: 1497, power: 117.3, mileage: 18.0 },
+                    duster: { label: 'Renault Duster', brand: "Renault", year: 2015, km: 80000, fuel: "Diesel", transmission: "Manual", owner: "Second Owner", engine: 1461, power: 108.5, mileage: 19.8 },
+                    bmw: { label: 'BMW 3 Series', brand: "BMW", year: 2017, km: 40000, fuel: "Diesel", transmission: "Automatic", owner: "First Owner", engine: 1995, power: 190.0, mileage: 19.6 },
+                    innova: { label: 'Toyota Innova Crysta', brand: "Toyota", year: 2018, km: 70000, fuel: "Diesel", transmission: "Manual", owner: "First Owner", engine: 2393, power: 147.5, mileage: 15.1 }
+                },
+
+                brandTiers: {
+                    "BMW": 3.8, "Mercedes-Benz": 4.0, "Audi": 3.7, "Toyota": 1.45,
+                    "Honda": 1.25, "Hyundai": 1.05, "Mahindra": 1.1, "Maruti": 1.0,
+                    "Tata": 1.0, "Ford": 0.95, "Renault": 0.9, "Skoda": 1.2, "Volkswagen": 1.25
+                },
+
+                depreciationCurve: [
+                    { label: '1y', pct: 85, color: '#34d399', colorEnd: '#059669' },
+                    { label: '2y', pct: 72, color: '#34d399', colorEnd: '#059669' },
+                    { label: '3y', pct: 62, color: '#a855f7', colorEnd: '#7c3aed' },
+                    { label: '4y', pct: 53, color: '#a855f7', colorEnd: '#7c3aed' },
+                    { label: '5y', pct: 45, color: '#a855f7', colorEnd: '#7c3aed' },
+                    { label: '6y', pct: 38, color: '#818cf8', colorEnd: '#6366f1' },
+                    { label: '7y', pct: 32, color: '#818cf8', colorEnd: '#6366f1' },
+                    { label: '8y', pct: 27, color: '#fb7185', colorEnd: '#e11d48' },
+                    { label: '10y', pct: 20, color: '#fb7185', colorEnd: '#e11d48' },
+                    { label: '12y+', pct: 14, color: '#fb7185', colorEnd: '#e11d48' },
+                ],
 
                 get filteredCars() {
                     if (!this.searchQuery) return this.sampleCars;
                     const q = this.searchQuery.toLowerCase();
-                    return this.sampleCars.filter(c => c.name.toLowerCase().includes(q) || c.brand.toLowerCase().includes(q));
+                    return this.sampleCars.filter(c => c.name.toLowerCase().includes(q) || c.brand.toLowerCase().includes(q) || c.fuel.toLowerCase().includes(q));
+                },
+
+                switchTab(tabId) {
+                    this.currentTab = tabId;
+                    if (tabId === 'dashboard') {
+                        this.$nextTick(() => {
+                            this.initCharts();
+                        });
+                    }
                 },
 
                 loadCarIntoEstimator(car) {
@@ -742,44 +1742,33 @@
                     this.estimator.engine = car.engine;
                     this.estimator.power = car.power;
                     this.estimator.mileage = car.mileage;
-                    this.currentTab = 'valuation';
+                    this.switchTab('valuation');
                     this.calculateValuation();
                 },
 
                 setPreset(name) {
-                    const presets = {
-                        swift: { brand: "Maruti", year: 2016, km: 65000, fuel: "Diesel", transmission: "Manual", owner: "First Owner", engine: 1248, power: 74.0, mileage: 24.3 },
-                        city: { brand: "Honda", year: 2019, km: 35000, fuel: "Petrol", transmission: "Automatic", owner: "First Owner", engine: 1497, power: 117.3, mileage: 18.0 },
-                        duster: { brand: "Renault", year: 2015, km: 80000, fuel: "Diesel", transmission: "Manual", owner: "Second Owner", engine: 1461, power: 108.5, mileage: 19.8 },
-                        bmw: { brand: "BMW", year: 2017, km: 40000, fuel: "Diesel", transmission: "Automatic", owner: "First Owner", engine: 1995, power: 190.0, mileage: 19.6 }
-                    };
-                    const p = presets[name];
+                    const p = this.presetList[name];
                     if (p) {
-                        Object.assign(this.estimator, p);
+                        Object.assign(this.estimator, {
+                            brand: p.brand, year: p.year, km: p.km, fuel: p.fuel,
+                            transmission: p.transmission, owner: p.owner,
+                            engine: p.engine, power: p.power, mileage: p.mileage
+                        });
                         this.calculateValuation();
                     }
                 },
 
                 formatInr(val) {
                     const lakhs = val / 100000;
-                    if (lakhs >= 100) {
-                        return `₹${(lakhs / 100).toFixed(2)} Cr`;
-                    } else if (lakhs >= 1) {
-                        return `₹${lakhs.toFixed(2)} Lakh`;
-                    }
+                    if (lakhs >= 100) return `₹${(lakhs / 100).toFixed(2)} Cr`;
+                    if (lakhs >= 1) return `₹${lakhs.toFixed(2)} Lakh`;
                     return `₹${Math.round(val).toLocaleString('en-IN')}`;
                 },
 
                 calculateValuation() {
-                    const brandTiers = {
-                        "BMW": 3.8, "Mercedes-Benz": 4.0, "Audi": 3.7, "Toyota": 1.45,
-                        "Honda": 1.25, "Hyundai": 1.05, "Mahindra": 1.1, "Tata": 1.0,
-                        "Ford": 0.95, "Renault": 0.9, "Skoda": 1.2, "Volkswagen": 1.25, "Maruti": 1.0
-                    };
-
                     const carAge = 2026 - parseInt(this.estimator.year);
                     let base = 600000;
-                    const brandMult = brandTiers[this.estimator.brand] || 1.0;
+                    const brandMult = this.brandTiers[this.estimator.brand] || 1.0;
                     const powerFactor = Math.pow(parseFloat(this.estimator.power) / 85, 1.25);
                     const engineFactor = Math.pow(parseFloat(this.estimator.engine) / 1250, 0.4);
                     const ageDepreciation = Math.exp(-0.088 * carAge);
@@ -803,12 +1792,194 @@
                     this.valuationResult.margin = `+${this.formatInr(spreadLow)} – ${this.formatInr(spreadHigh)}`;
                 },
 
+                exportFleetCSV() {
+                    const headers = ["ID", "Name", "Brand", "Year", "KM Driven", "Fuel", "Transmission", "Price INR"];
+                    const rows = this.sampleCars.map(c => [
+                        c.id, `"${c.name}"`, c.brand, c.year, c.km, c.fuel, c.transmission, c.price
+                    ]);
+                    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `fixora_fleet_export_${new Date().toISOString().slice(0,10)}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                },
+
+                initCharts() {
+                    if (typeof Chart === 'undefined') {
+                        setTimeout(() => this.initCharts(), 150);
+                        return;
+                    }
+
+                    Chart.defaults.color = '#94a3b8';
+                    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
+                    // 1. Price Trend by Year (Area Chart)
+                    const canvasYear = document.getElementById('chartYearPrice');
+                    if (canvasYear && !canvasYear.chartInstance) {
+                        const years = ["2008", "2010", "2012", "2014", "2015", "2016", "2017", "2018", "2019", "2020"];
+                        const prices = [2.07, 2.73, 3.51, 5.16, 5.97, 7.00, 8.89, 9.58, 17.77, 8.85];
+
+                        const ctx = canvasYear.getContext('2d');
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+                        gradient.addColorStop(0, 'rgba(168, 85, 247, 0.45)');
+                        gradient.addColorStop(1, 'rgba(147, 51, 234, 0.0)');
+
+                        canvasYear.chartInstance = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: years,
+                                datasets: [{
+                                    label: 'Avg Selling Price (₹ Lakhs)',
+                                    data: prices,
+                                    borderColor: '#a855f7',
+                                    backgroundColor: gradient,
+                                    fill: true,
+                                    tension: 0.35,
+                                    borderWidth: 3,
+                                    pointBackgroundColor: '#c084fc',
+                                    pointBorderColor: '#020617',
+                                    pointBorderWidth: 2,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6,
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: '#0f172a',
+                                        borderColor: '#334155',
+                                        borderWidth: 1,
+                                        callbacks: {
+                                            label: (ctx) => `Avg Price: ₹${ctx.parsed.y.toFixed(2)} Lakh`
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: { grid: { color: 'rgba(51, 65, 85, 0.25)' }, ticks: { font: { size: 10 } } },
+                                    y: {
+                                        grid: { color: 'rgba(51, 65, 85, 0.25)' },
+                                        ticks: {
+                                            callback: (val) => `₹${val}L`,
+                                            font: { size: 10 }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // 2. Brand Share (Doughnut Chart)
+                    const canvasBrand = document.getElementById('chartBrandShare');
+                    if (canvasBrand && !canvasBrand.chartInstance) {
+                        const ctx = canvasBrand.getContext('2d');
+                        canvasBrand.chartInstance = new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Maruti', 'Hyundai', 'Mahindra', 'Tata', 'Toyota', 'Honda', 'Others'],
+                                datasets: [{
+                                    data: [2448, 1415, 772, 734, 488, 467, 1804],
+                                    backgroundColor: [
+                                        '#9333ea', '#6366f1', '#3b82f6', '#06b6d4',
+                                        '#10b981', '#f59e0b', '#64748b'
+                                    ],
+                                    borderWidth: 0,
+                                    hoverOffset: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: { boxWidth: 10, font: { size: 10 }, color: '#94a3b8' }
+                                    },
+                                    tooltip: {
+                                        backgroundColor: '#0f172a',
+                                        borderColor: '#334155',
+                                        borderWidth: 1,
+                                        callbacks: {
+                                            label: (ctx) => `${ctx.label}: ${ctx.raw} units (${((ctx.raw/8128)*100).toFixed(1)}%)`
+                                        }
+                                    }
+                                },
+                                cutout: '65%'
+                            }
+                        });
+                    }
+
+                    // 3. Price Tier Brackets (Horizontal Bar Chart)
+                    const canvasBrackets = document.getElementById('chartPriceBrackets');
+                    if (canvasBrackets && !canvasBrackets.chartInstance) {
+                        const ctx = canvasBrackets.getContext('2d');
+                        canvasBrackets.chartInstance = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['< ₹3 Lakh', '₹3L - ₹6L', '₹6L - ₹10L', '₹10L - ₹20L', '> ₹20 Lakh'],
+                                datasets: [{
+                                    label: 'Vehicles',
+                                    data: [2406, 2937, 1915, 467, 403],
+                                    backgroundColor: ['#10b981', '#a855f7', '#6366f1', '#f59e0b', '#ec4899'],
+                                    borderRadius: 8
+                                }]
+                            },
+                            options: {
+                                indexAxis: 'y',
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    x: { grid: { color: 'rgba(51, 65, 85, 0.25)' }, ticks: { font: { size: 10 } } },
+                                    y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                                }
+                            }
+                        });
+                    }
+
+                    // 4. Fuel & Transmission Mix (Bar Chart)
+                    const canvasFuel = document.getElementById('chartFuelTrans');
+                    if (canvasFuel && !canvasFuel.chartInstance) {
+                        const ctx = canvasFuel.getContext('2d');
+                        canvasFuel.chartInstance = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Diesel', 'Petrol', 'CNG/LPG', 'Manual', 'Automatic'],
+                                datasets: [{
+                                    label: 'Fleet Volume',
+                                    data: [4402, 3631, 95, 7078, 1050],
+                                    backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#6366f1', '#f43f5e'],
+                                    borderRadius: 8
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                                    y: { grid: { color: 'rgba(51, 65, 85, 0.25)' }, ticks: { font: { size: 10 } } }
+                                }
+                            }
+                        });
+                    }
+
+                    this.chartsInitialized = true;
+                },
+
                 init() {
                     this.calculateValuation();
+                    this.$nextTick(() => {
+                        this.initCharts();
+                    });
                 }
             }
         }
     </script>
 </body>
-
 </html>
